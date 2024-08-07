@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Сканер QR-кодов</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    /* Ваши стили */
+  </style>
+</head>
+<body>
+  <button id="singleScanBtn">Сканировать QR-код</button>
+  <button id="multiScanBtn">Групповое сканирование</button>
+  <button id="cancelBtn">Отмена</button>
+  <div id="result"></div>
+
+  <script>
+    const singleScanBtn = document.getElementById('singleScanBtn');
+    const multiScanBtn = document.getElementById('multiScanBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const resultDiv = document.getElementById('result');
+
+    let multiScanResults = [];
+
+    singleScanBtn.addEventListener('click', () => {
+      scanQRCode('single_scan');
+    });
+
+    multiScanBtn.addEventListener('click', () => {
+      multiScanResults = [];
+      scanQRCode('multi_scan');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      Telegram.WebApp.close();
+    });
+
+    function scanQRCode(action) {
+      Telegram.WebApp.scanQR().then(result => {
+        if (action === 'single_scan') {
+          sendResultToBot(action, result);
+        } else {
+          multiScanResults.push(result);
+          resultDiv.innerHTML += `<p>${result}</p>`;
+          showMultiScanButtons();
+        }
+      }).catch(error => {
+        resultDiv.textContent = "Ошибка сканирования: " + error;
+      });
+    }
+
+    function showMultiScanButtons() {
+      resultDiv.innerHTML += `
+        <button onclick="scanQRCode('multi_scan')">Далее</button>
+        <button onclick="finishMultiScan()">Завершить</button>
+      `;
+    }
+
+    function finishMultiScan() {
+      sendResultToBot('multi_scan', multiScanResults);
+    }
+
+    function sendResultToBot(action, result) {
+      const data = { action, result };
+      Telegram.WebApp.sendData(JSON.stringify(data));
+      Telegram.WebApp.close();
+    }
+  </script>
+</body>
+</html>

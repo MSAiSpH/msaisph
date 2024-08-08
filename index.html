@@ -4,7 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Сканер QR-кодов</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script> 
+  <style>
+    /* Базовые стили для лучшей читаемости */
+    body { font-family: sans-serif; }
+    button { padding: 10px; margin: 5px; }
+    #result { margin-top: 20px; }
+  </style>
 </head>
 <body>
   <button id="singleScanBtn">Сканировать QR-код</button>
@@ -13,55 +19,60 @@
   <div id="result"></div>
 
   <script>
-    const singleScanBtn = document.getElementById('singleScanBtn');
-    const multiScanBtn = document.getElementById('multiScanBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const resultDiv = document.getElementById('result');
+    // Убеждаемся, что Telegram WebApp готов к работе
+    Telegram.WebApp.ready(); 
 
-    let multiScanResults = [];
+    let multiScanResults = []; // Массив для результатов группового сканирования
 
-    singleScanBtn.addEventListener('click', () => {
-      scanQRCode('single_scan');
+    // Обработчики событий для кнопок
+    document.getElementById('singleScanBtn').addEventListener('click', () => {
+      scanQRCode('single_scan'); // Сканируем один QR-код
     });
 
-    multiScanBtn.addEventListener('click', () => {
-      multiScanResults = [];
+    document.getElementById('multiScanBtn').addEventListener('click', () => {
+      multiScanResults = []; // Очищаем результаты перед новым групповым сканированием
       scanQRCode('multi_scan');
     });
 
-    cancelBtn.addEventListener('click', () => {
-      Telegram.WebApp.close();
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+      Telegram.WebApp.close(); // Закрываем WebApp при нажатии "Отмена"
     });
 
+    // Функция для сканирования QR-кода
     function scanQRCode(action) {
-      Telegram.WebApp.scanQR().then(result => {
-        if (action === 'single_scan') {
-          sendResultToBot(action, result);
-        } else {
-          multiScanResults.push(result);
-          resultDiv.innerHTML += `<p>${result}</p>`;
-          showMultiScanButtons();
-        }
-      }).catch(error => {
-        resultDiv.textContent = "Ошибка сканирования: " + error;
-      });
+      Telegram.WebApp.scanQR()
+        .then(result => { // Если сканирование успешно
+          if (action === 'single_scan') {
+            sendResultToBot(action, result); // Отправляем результат одиночного сканирования боту
+          } else {
+            multiScanResults.push(result); // Добавляем результат в массив
+            document.getElementById('result').innerHTML += `<p>${result}</p>`; // Выводим результат на страницу
+            showMultiScanButtons(); // Показываем кнопки для продолжения/завершения группового сканирования
+          }
+        })
+        .catch(error => { // Если произошла ошибка
+          document.getElementById('result').textContent = "Ошибка сканирования: " + error;
+        });
     }
 
+    // Функция для отображения кнопок продолжения/завершения группового сканирования
     function showMultiScanButtons() {
-      resultDiv.innerHTML += `
+      document.getElementById('result').innerHTML += `
         <button onclick="scanQRCode('multi_scan')">Далее</button>
         <button onclick="finishMultiScan()">Завершить</button>
       `;
     }
 
+    // Функция для завершения группового сканирования и отправки результатов боту
     function finishMultiScan() {
-      sendResultToBot('multi_scan', multiScanResults);
+      sendResultToBot('multi_scan', multiScanResults); 
     }
 
+    // Функция для отправки результатов сканирования боту
     function sendResultToBot(action, result) {
       const data = { action, result };
-      Telegram.WebApp.sendData(JSON.stringify(data));
-      Telegram.WebApp.close();
+      Telegram.WebApp.sendData(JSON.stringify(data)); 
+      Telegram.WebApp.close(); 
     }
   </script>
 </body>

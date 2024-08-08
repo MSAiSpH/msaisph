@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Сканер QR-кодов</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script> 
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    /* Базовые стили для лучшей читаемости */
     body { font-family: sans-serif; }
     button { padding: 10px; margin: 5px; }
     #result { margin-top: 20px; }
@@ -19,60 +18,64 @@
   <div id="result"></div>
 
   <script>
-    // Убеждаемся, что Telegram WebApp готов к работе
-    Telegram.WebApp.ready(); 
+    // Ожидаем готовности Telegram Web App
+    Telegram.WebApp.ready();
 
-    let multiScanResults = []; // Массив для результатов группового сканирования
+    // Переменные для хранения результатов
+    let multiScanResults = [];
+    let currentAction = ''; // Для отслеживания текущего действия (single_scan или multi_scan)
 
     // Обработчики событий для кнопок
     document.getElementById('singleScanBtn').addEventListener('click', () => {
-      scanQRCode('single_scan'); // Сканируем один QR-код
+      currentAction = 'single_scan';
+      scanQRCode();
     });
 
     document.getElementById('multiScanBtn').addEventListener('click', () => {
-      multiScanResults = []; // Очищаем результаты перед новым групповым сканированием
-      scanQRCode('multi_scan');
+      multiScanResults = [];
+      currentAction = 'multi_scan';
+      scanQRCode();
     });
 
     document.getElementById('cancelBtn').addEventListener('click', () => {
-      Telegram.WebApp.close(); // Закрываем WebApp при нажатии "Отмена"
+      Telegram.WebApp.close();
     });
 
-    // Функция для сканирования QR-кода
-    function scanQRCode(action) {
+    // Функция сканирования QR-кода
+    function scanQRCode() {
       Telegram.WebApp.scanQR()
-        .then(result => { // Если сканирование успешно
-          if (action === 'single_scan') {
-            sendResultToBot(action, result); // Отправляем результат одиночного сканирования боту
+        .then(result => {
+          if (currentAction === 'single_scan') {
+            sendResultToBot(result); // Отправляем результат сразу
           } else {
-            multiScanResults.push(result); // Добавляем результат в массив
-            document.getElementById('result').innerHTML += `<p>${result}</p>`; // Выводим результат на страницу
-            showMultiScanButtons(); // Показываем кнопки для продолжения/завершения группового сканирования
+            multiScanResults.push(result);
+            document.getElementById('result').innerHTML += `<p>${result}</p>`;
+            showMultiScanButtons();
           }
         })
-        .catch(error => { // Если произошла ошибка
+        .catch(error => {
+          console.error("Ошибка сканирования:", error);
           document.getElementById('result').textContent = "Ошибка сканирования: " + error;
         });
     }
 
-    // Функция для отображения кнопок продолжения/завершения группового сканирования
+    // Функции для группового сканирования
     function showMultiScanButtons() {
       document.getElementById('result').innerHTML += `
-        <button onclick="scanQRCode('multi_scan')">Далее</button>
+        <button onclick="scanQRCode()">Далее</button>
         <button onclick="finishMultiScan()">Завершить</button>
       `;
     }
 
-    // Функция для завершения группового сканирования и отправки результатов боту
     function finishMultiScan() {
-      sendResultToBot('multi_scan', multiScanResults); 
+      sendResultToBot(multiScanResults);
     }
 
-    // Функция для отправки результатов сканирования боту
-    function sendResultToBot(action, result) {
-      const data = { action, result };
-      Telegram.WebApp.sendData(JSON.stringify(data)); 
-      Telegram.WebApp.close(); 
+    // Функция отправки результатов боту
+    function sendResultToBot(result) {
+      const data = { action: currentAction, result };
+      Telegram.WebApp.sendData(JSON.stringify(data));
+      Telegram.WebApp.close();
     }
   </script>
 </body>

@@ -6,7 +6,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 bot = telebot.TeleBot('7139744154:AAF1-RRSnZK-S7W66_8jy4sChqsvZy4vbT0')
 
 # URL вашего локального WebApp (замените порт, если используете другой)
-webapp_url = 'https://msaisph.github.io/msaisph/'
+webapp_url = 'https://github.com/MSAiSpH/tg-scaner-bot.git'
 
 # Словарь для хранения результатов сканирования
 scan_results = {}
